@@ -4,6 +4,8 @@ namespace xjryanse\prize\service;
 
 use xjryanse\system\interfaces\MainModelInterface;
 use xjryanse\logic\Arrays;
+use xjryanse\logic\Arrays2d;
+use xjryanse\logic\Debug;
 /**
  * 价格分组
  */
@@ -11,7 +13,12 @@ class PrizeGroupService extends Base implements MainModelInterface {
 
     use \xjryanse\traits\InstTrait;
     use \xjryanse\traits\MainModelTrait;
+    use \xjryanse\traits\MainModelRamTrait;
+    use \xjryanse\traits\MainModelCacheTrait;
+    use \xjryanse\traits\MainModelCheckTrait;
+    use \xjryanse\traits\MainModelGroupTrait;
     use \xjryanse\traits\MainModelQueryTrait;
+
     use \xjryanse\traits\StaticModelTrait;
 
     protected static $mainModel;
@@ -25,8 +32,12 @@ class PrizeGroupService extends Base implements MainModelInterface {
         $con[] = ['start_time','<=',$time];
         $con[] = ['end_time','>=',$time];
         $con[] = ['company_id','=',session(SESSION_COMPANY_ID)];
-        $groups = PrizeGroupService::mainModel()->where($con)->order('level desc')->select();
-        return $groups;
+        
+        $lists = self::staticConList($con);
+        return Arrays2d::sort($lists, 'level', 'desc');
+        
+        // $groups = PrizeGroupService::mainModel()->where($con)->cache(2)->order('level desc')->select();
+        // return $groups;
     }
     
     /**
@@ -81,7 +92,17 @@ class PrizeGroupService extends Base implements MainModelInterface {
         $info = self::staticConFind($con);
         return Arrays::value($info, 'id');
     }
-    
+    /**
+     * 分类取id
+     * 20231128
+     */
+    public static function cateToIds($groupCate){
+        $con    = [];
+        $con[]  = ['group_cate','=',$groupCate];
+
+        $lists = self::staticConList($con);
+        return array_column($lists, 'id');
+    }
     
     public function fCustomerId() {
         return $this->getFFieldValue(__FUNCTION__);

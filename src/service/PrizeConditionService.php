@@ -13,7 +13,12 @@ class PrizeConditionService extends Base implements MainModelInterface {
 
     use \xjryanse\traits\InstTrait;
     use \xjryanse\traits\MainModelTrait;
+    use \xjryanse\traits\MainModelRamTrait;
+    use \xjryanse\traits\MainModelCacheTrait;
+    use \xjryanse\traits\MainModelCheckTrait;
+    use \xjryanse\traits\MainModelGroupTrait;
     use \xjryanse\traits\MainModelQueryTrait;
+
 
     protected static $mainModel;
     protected static $mainModelClass = '\\xjryanse\\prize\\model\\PrizeCondition';
@@ -31,7 +36,8 @@ class PrizeConditionService extends Base implements MainModelInterface {
      */
     public static function isConditionKeyMatch($key,$param = [], $noCondPass = false){
         $con[] = ['item_key','=',$key];
-        $lists = self::mainModel()->where($con)->select();
+        $lists = self::mainModel()->where($con)->cache(60)->select();
+
         // 20230429:没有条件默认过
         if(!count($lists) && $noCondPass){
             return true;

@@ -3,6 +3,8 @@ namespace xjryanse\prize\logic;
 
 use xjryanse\prize\service\PrizeRuleService;
 use xjryanse\logic\Arrays;
+use xjryanse\logic\Debug;
+use xjryanse\logic\Cachex;
 /**
  * 司机薪水逻辑
  */
@@ -15,18 +17,13 @@ class DriverSalaryLogic
      * @return int
      */
     public static function calYing($data){
-        $distPrize = Arrays::value($data, 'distribute_prize');
-        
-        $time       = Arrays::value($data, 'start_time');
-        $groupCate  = 'driverSalaryYing';
-        $res        = PrizeRuleService::getPrizeWithFormula($time, $groupCate, $data);
-        dump($res);
-        return $distPrize * 0.95;
-//        $time = Arrays::value($data, 'start_time');
-//        $groupCate = 'driverSalaryRate';
-//        $res = PrizeRuleService::getPrizeWithFormula($time, $groupCate, $data);
-//
-//        return $res['prize'];
+        // Debug::dump($data);
+        $cacheKey = __METHOD__.md5(json_encode($data));
+        return Cachex::funcGet($cacheKey, function() use ($data){
+            $time       = Arrays::value($data, 'start_time');
+            $groupCate  = 'driverSalaryYing';
+            return PrizeRuleService::getPrizeWithFormula($time, $groupCate, $data);
+        },true,1);
     }
     /**
      * 计算司机抽点
@@ -36,7 +33,8 @@ class DriverSalaryLogic
         $groupCate = 'driverSalaryRate';
         //TODO：合理吗？
         $res = PrizeRuleService::getPerPrize($time, $groupCate, $data);
-        return $res['rate'];
+        
+        return $res && isset($res['rate']) ? $res['rate'] : 0;
     }
 
 }
